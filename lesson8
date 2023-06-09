@@ -1,0 +1,95 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.17;
+
+contract ContactBook{
+	string private _name;
+	address public _address;
+
+	uint256 public _numberOfContacts;
+	address[] public _contacts;
+
+	mapping(address=>string) private _contactNames;
+
+	constructor(string memory name){
+		_name = name;
+		_address = msg.sender;
+	}
+
+    // function addContact with event=========================================================
+
+    function addContact(string memory name) public {
+        Contact contact = new Contact(name);
+        _contacts.push(address(contact));
+        emit NewContact(name,getLastIndex());
+    }
+
+    // function callContact ==================================================================
+
+    function callContact(uint number) view public returns(string memory){
+        address _contactAddress = getContactAddress(number);
+        Contact callingContact = Contact(_contactAddress);
+        return callingContact.reply();
+    }
+
+	function setName(string memory name) public onlyOwner{
+		_name = name;
+	}
+
+	function getName() view public returns(string memory){
+		return _name;
+	}
+
+	function setAddress(address account) public onlyOwner{
+		_address = account;
+	}
+
+	function getAddress() view public returns(address){
+		return _address;
+	}
+
+	function getLastIndex() view public returns(uint256){
+		return _contacts.length;
+	}
+
+	function getContactAddress(uint256 number) view public returns(address){
+		return _contacts[number];
+	}
+
+	function getContactName(address account) view public returns(string memory){
+		return _contactNames[account];
+	}
+
+	event NewContact(string name, uint256 index);
+
+	modifier onlyOwner(){
+		require(msg.sender == getAddress(),"Only owner can call this function");
+		_;
+	}
+
+    modifier emitEvent(string memory name){
+        _;
+        emit NewContact(name,getLastIndex());
+    }
+
+}
+
+contract Contact {
+
+    string public _name;
+    address public _account;
+
+    constructor(string memory name) {
+        _name = name;
+    }
+
+    function getName() public view  returns (string memory) {
+        return _name;
+    }
+
+    function reply() public view  returns (string memory) {
+        return string.concat(getName(), " on call!");
+    }
+
+}
+
